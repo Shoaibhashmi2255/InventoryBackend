@@ -13,10 +13,15 @@ app.use(morgan('tiny'));
 
 
 const api = process.env.API_URL;
-console.log('API_URL:',api);
 
 
 
+const productSchema = mongoose.Schema({
+    name:String,
+    countInStock:String
+})
+
+const Product = mongoose.model('Products', productSchema);
 
 app.get(`${api}/products`,(req,res)=>{
     const product = {
@@ -28,12 +33,15 @@ app.get(`${api}/products`,(req,res)=>{
 
 
 app.post(`${api}/products`,(req,res)=>{
-    try {
-        const newProduct = req.body;        
-        res.send(newProduct);
-    } catch (error) {
-        console.log(error);   
-    }   
+    const products = new Product({
+        name: req.body.name,
+        countInStock: req.body.countInStock
+    })
+    products.save().then((success => {
+        res.status(201).send(success);
+    })).catch((err)=>{
+        res.status(500).send(err);
+    })
 })
 
 //password'dkOn4wQbAUYp82mV'
