@@ -3,7 +3,7 @@ const app = express();
 const morgan = require('morgan');
 require('dotenv/config');
 const mongoose = require('mongoose');
-
+const productRouter = require('./routers/products');
 
 
 
@@ -16,33 +16,10 @@ const api = process.env.API_URL;
 
 
 
-const productSchema = mongoose.Schema({
-    name:String,
-    countInStock:String
-})
-
-const Product = mongoose.model('Products', productSchema);
-
-app.get(`${api}/products`,(req,res)=>{
-    const product = {
-        id : 1,
-        Name : 'ball'
-    }
-    res.send(product);    
-})
 
 
-app.post(`${api}/products`,(req,res)=>{
-    const products = new Product({
-        name: req.body.name,
-        countInStock: req.body.countInStock
-    })
-    products.save().then((success => {
-        res.status(201).send(success);
-    })).catch((err)=>{
-        res.status(500).send(err);
-    })
-})
+//Router
+app.use(`${api}/products`, productRouter);
 
 //password'dkOn4wQbAUYp82mV'
 
