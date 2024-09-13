@@ -1,3 +1,4 @@
+const {Product} = require('../models/product');
 const express = require('express');
 const router = express.Router();
 
@@ -8,7 +9,6 @@ router.get(`/`,(req,res)=>{
     }
     res.send(product);    
 })
-
 
 router.post(`/`,(req,res)=>{
     const products = new Product({
