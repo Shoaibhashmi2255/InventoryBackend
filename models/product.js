@@ -17,12 +17,12 @@ const productSchema = mongoose.Schema({
     department: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Department',
-        required: true
+        required: false
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: false
     },
     quantity: {
         type: Number,
@@ -50,3 +50,18 @@ const productSchema = mongoose.Schema({
 })
 
 exports.Product = mongoose.model('Products', productSchema);
+
+
+
+// {
+//     "name":"stationary",
+//     "description":"book",
+//     "vendor":"Ali",
+//     "department":"Admin",
+//     "category":"stationary",
+//     "quantity":"2",
+//     "price":"30",
+//     "scrapPrice":"1",
+//     "marketPtice":"30"
+
+// }
