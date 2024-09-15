@@ -1,3 +1,4 @@
+const { Vendor } = require('../models/vendor');
 const express = require('express');
 const router = express.Router();
 
