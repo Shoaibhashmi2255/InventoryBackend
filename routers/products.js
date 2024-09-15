@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 
 router.get(`/`, async (req, res) => {
     let filter = {};
+
     if (req.query.categories) {
         filter.category = { $in: req.query.categories.split(',') };
     }
@@ -19,6 +20,11 @@ router.get(`/`, async (req, res) => {
     if (req.query.department) {
         filter.department = req.query.departments;
     }
+
+    if (req.query.vendor) {
+        filter.vendor = req.query.vendor;
+    }
+
     const product = await Product.find(filter).populate('category department vendor');
 
     if (!product) {
