@@ -11,6 +11,7 @@ router.get(`/`, async (req, res) => {
     res.status(200).send(product);
 });
 
+
 router.get(`/:id`, async (req, res) => {
     const product = await Product.findById({
         _id: req.params.id
@@ -21,6 +22,7 @@ router.get(`/:id`, async (req, res) => {
     }
     res.status(200).send(product);
 });
+
 
 router.post(`/`, async (req, res) => {
     let product = new Product({
@@ -74,14 +76,14 @@ router.put(`/:id`, async (req, res) => {
 })
 
 
-router.delete(`/:id`, async (req, res) => {
-    const delProduct = await Product.findByIdAndDelete({
+router.delete(`/:id`, (req, res) => {
+     Product.findByIdAndDelete({
         _id: req.params.id
     }).then((product) => {
         if (product) {
-            return res.status(500).send('Product not deleted');
+            return res.status(200).send('Product deleted');
         }
-        return res.status(200).send('Product delted');
+        return res.status(404).send('Product not delted');
     }).catch((err) => {
         return res.status(404).json({ success: false, error: err });
     })

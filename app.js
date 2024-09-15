@@ -17,12 +17,27 @@ const api = process.env.API_URL;
 // models
 const productRouter = require('./routers/products');
 const categoryRouter = require('./routers/categories');
+const branchRouter = require('./routers/branches');
+const departmentRouter = require('./routers/departments');
+const inventoryRouter = require('./routers/inventory');
+const userRouter = require('./routers/users');
+const vendorRouter = require('./routers/vendors');
+
+
 
 
 
 //Router
 app.use(`${api}/products`, productRouter);
 app.use(`${api}/categories`, categoryRouter);
+app.use(`${api}/branches`, branchRouter);
+app.use(`${api}/departments`, departmentRouter);
+app.use(`${api}/inventory`, inventoryRouter);
+app.use(`${api}/users`, userRouter);
+app.use(`${api}/vendors`, vendorRouter);
+
+
+
 
 //password'dkOn4wQbAUYp82mV'
 

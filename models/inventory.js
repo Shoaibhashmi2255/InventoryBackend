@@ -8,12 +8,12 @@ const inventorySchema = mongoose.Schema({
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: false
     },
     vendor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
-        required: true
+        required: false
     },
     quantity: {
         type: Number,
