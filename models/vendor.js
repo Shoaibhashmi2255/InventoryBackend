@@ -3,15 +3,15 @@ const mongoose = require ('mongoose');
 const vendorSchema = mongoose.Schema({
     Name: {
         type: String,
-        required: true,
+        required: false,
     },
     email: {
         type: String,
-        required: true,
+        required: false,
     },
     phone: {
         type: String,
-        required: true,
+        required: false,
     },
 
     isWorking: {
@@ -20,7 +20,7 @@ const vendorSchema = mongoose.Schema({
     },
     vendorType: {
         type: String,
-        required: true
+        required: false
     }
 });
 
