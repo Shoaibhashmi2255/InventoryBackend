@@ -5,6 +5,11 @@ const inventorySchema = mongoose.Schema({
         type: String,
         required: true
     },
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'Product',
+        required: false
+    },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
@@ -14,6 +19,10 @@ const inventorySchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
         required: false
+    },
+    previousMonthInventory:{
+        type:Number,
+        default: 0
     },
     quantity: {
         type: Number,
