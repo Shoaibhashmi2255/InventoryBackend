@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 router.get(`/`, async (req, res) => {
+    
     const getUser = await User.find().select('-passwordHash');
 
     if (!getUser) {
