@@ -12,5 +12,13 @@ const branchSchema = mongoose.Schema({
     },
 });
 
+branchSchema.virtual('id').get(function () {
+    return this._id.toHexString();
+});
+
+branchSchema.set('toJSON', {
+    virtuals: true,
+});
+
 
 exports.Branch = mongoose.model('Branch', branchSchema);

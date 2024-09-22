@@ -52,17 +52,19 @@ router.put(`/:id`, async (req, res) => {
 
 });
 
-router.delete(`/:id`, (req,res)=> {
-    Department.findByIdAndDelete({
-        _id: req.params.id
-    }).then((department)=> {
-        if(department){
-            res.status(200).send('Department Deleted');
-        }
-        res.status(500).send('Department no deleted');
-    }).catch((error)=> {
-        res.status(404).json({error:error});
-    })
+router.delete(`/:id`, (req, res) => {
+    Department.findByIdAndDelete(req.params.id)
+        .then((department) => {
+            if (department) {
+                return res.status(200).json({ success: true, message: 'Deprartment deleted' });  
+            } else {
+                return res.status(404).json({ success: false, message: 'Deprartment not found' });   
+            }
+        })
+        .catch((error) => {
+            return res.status(500).json({ error: error });  // Return here for the error case
+        });
 });
+
 
 module.exports = router;

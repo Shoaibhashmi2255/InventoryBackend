@@ -58,13 +58,13 @@ router.put(`/:id`, async (req, res) => {
 router.delete(`/:id`, (req, res) => {
     Category.findOneAndDelete({ _id: req.params.id }).then((category) => {
         if (category) {
-            res.status(200).send('category deleted');
+            res.status(200).json({ success: true, message: 'Category deleted' });
         } else {
-            res.status(404).send('category not deleted')
+            res.status(404).json({ success: false, message: 'Category not found' });
         }
     }).catch(err => {
-        return res.status(400).json({ success: false, error: err });
-    })
+        return res.status(500).json({ success: false, error: err });
+    });
 });
 
 

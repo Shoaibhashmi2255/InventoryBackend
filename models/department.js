@@ -13,4 +13,12 @@ const departmentSchema = mongoose.Schema({
     }
 });
 
+departmentSchema.virtual('id').get(function () {
+    return this._id.toHexString();
+});
+
+departmentSchema.set('toJSON', {
+    virtuals: true,
+});
+
 exports.Department = mongoose.model('Department', departmentSchema);

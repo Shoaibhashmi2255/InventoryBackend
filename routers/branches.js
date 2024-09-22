@@ -83,12 +83,12 @@ router.delete(`/:id`, (req, res) => {
             _id: req.params.id
         }).then((branch) => {
             if (branch) {
-                return res.status(404).send('Branch  Deleted');
+                return res.status(200).json({ success: true, message: 'Branch deleted' });  
             }
-            return res.status(404).send('Branch not Deleted!')
+            return res.status(404).json({ success: false, message: 'Branch not found' });   
         }).catch((error) => {
             return res.status(500).json({ success: false, message: 'Internal server error', error: error });
         })
-})
+});
 
 module.exports = router;

@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(morgan('tiny'));
 app.use(cors());
 app.options('*', cors());
-app.use(authJWT());
+// app.use(authJWT());
 
 const api = process.env.API_URL;
 
@@ -24,6 +24,7 @@ const departmentRouter = require('./routers/departments');
 const inventoryRouter = require('./routers/inventory');
 const userRouter = require('./routers/users');
 const vendorRouter = require('./routers/vendors');
+const orderRouter = require('./routers/orders');
 
 
 
@@ -37,6 +38,8 @@ app.use(`${api}/departments`, departmentRouter);
 app.use(`${api}/inventory`, inventoryRouter);
 app.use(`${api}/users`, userRouter);
 app.use(`${api}/vendors`, vendorRouter);
+app.use(`${api}/orders`,orderRouter);
+
 
 
 
