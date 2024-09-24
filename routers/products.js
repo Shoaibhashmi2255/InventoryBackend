@@ -30,7 +30,7 @@ router.get(`/`, async (req, res) => {
     if (!product) {
         res.status(500).send({ success: false, error: err })
     }
-    res.status(200).send(product);
+    res.status(201).send(product);
 });
 
 
@@ -108,7 +108,7 @@ router.put(`/:id`, async (req, res) => {
                 quantity: req.body.quantity,
                 price: req.body.price,
                 scrapPrice: req.body.scrapPrice,
-                marketPtice: req.body.marketPtice,
+                marketPtice: req.body.marketPrice,
                 inlineFormulas: req.body.inlineFormulas,
                 dateCreated: req.body.dateCreated,
             },

@@ -32,7 +32,7 @@ const productSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
-    marketPtice: {
+    marketPrice: {
         type: Number,
         default: 0
     },
