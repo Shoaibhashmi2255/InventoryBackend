@@ -19,11 +19,20 @@ const orderSchema = mongoose.Schema({
     branch: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branch',
+        required:false
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required:false
     },
     dateOrdered: {
         type: Date,
         default: Date.now, 
     },
+    quantityIssue:{
+        type: Number
+    }
 });
 
 

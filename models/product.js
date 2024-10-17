@@ -24,9 +24,16 @@ const productSchema = mongoose.Schema({
         ref: 'Category',
         required: false
     },
-    quantity: {
+    quantity: {    //total stock
         type: Number,
         default: 0
+    },
+    stockIssued: { type: Number, default: 0 }, // Stock issued
+    stockRemaining: { 
+        type: Number, 
+        default: function() { 
+            return this.quantity - this.stockIssued;
+        }
     },
     price: {
         type: Number,
@@ -57,7 +64,7 @@ productSchema.set('toJSON', {
     virtuals: true,
 });
 
-exports.Product = mongoose.model('Products', productSchema);
+exports.Product = mongoose.model('Product', productSchema);
 
 
 

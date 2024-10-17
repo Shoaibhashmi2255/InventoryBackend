@@ -35,6 +35,7 @@ router.get(`/`, async (req, res) => {
 
 
 router.get(`/:id`, async (req, res) => {
+    console.log("Product ID received:", req.params.id);
     const product = await Product.findById({
         _id: req.params.id
     }).populate('category department vendor');
@@ -54,8 +55,8 @@ router.post(`/`, async (req, res) => {
     const vendor = await Vendor.findById(req.body.vendor);
     if(!vendor) res.status(400).send('invalid vendor');
 
-    const department = await Department.findById(req.body.department);
-    if(!department) res.status(400).send('invalid department');
+    // const department = await Department.findById(req.body.department);
+    // if(!department) res.status(400).send('invalid department');
 
 
     let product = new Product({
@@ -67,7 +68,7 @@ router.post(`/`, async (req, res) => {
         quantity: req.body.quantity,
         price: req.body.price,
         scrapPrice: req.body.scrapPrice,
-        marketPtice: req.body.marketPtice,
+        marketPtice: req.body.marketPrice,
         inlineFormulas: req.body.inlineFormulas,
         dateCreated: req.body.dateCreated,
     });
@@ -75,9 +76,9 @@ router.post(`/`, async (req, res) => {
     product = await product.save();
 
     if (!product) {
-        res.status(500).send('Product not created!');
+       return res.status(500).send('Product not created!');
     }
-    res.status(200).send(product);
+   return res.status(200).send(product);
 });
 
 router.put(`/:id`, async (req, res) => {
@@ -92,8 +93,8 @@ router.put(`/:id`, async (req, res) => {
         const vendor = await Vendor.findById(req.body.vendor);
         if(!vendor) res.status(400).send('invalid vendor');
     
-        const department = await Department.findById(req.body.department);
-        if(!department) res.status(400).send('invalid department');
+        // const department = await Department.findById(req.body.department);
+        // if(!department) res.status(400).send('invalid department');
         
         const updProduct = await Product.findByIdAndUpdate(
             {
@@ -103,7 +104,7 @@ router.put(`/:id`, async (req, res) => {
                 name: req.body.name,
                 description: req.body.description,
                 vendor: req.body.vendor,
-                department: req.body.department,
+                // department: req.body.department,
                 category: req.body.category,
                 quantity: req.body.quantity,
                 price: req.body.price,
@@ -124,17 +125,62 @@ router.put(`/:id`, async (req, res) => {
         res.status(400).send(error,'Internal Server erorr');
     }
 
-})
+});
 
+// router.put('/:id/issue-stock', async (req, res) => {
+//     const product = await Product.findById(req.params.id);
+
+//     if (!product) {
+//         return res.status(404).send('Product not found');
+//     }
+
+//     const { issuedQuantity } = req.body;
+
+//     if (issuedQuantity > product.quantity - product.stockIssued) {
+//         return res.status(400).send('Not enough stock available');
+//     }
+
+//     product.stockIssued += issuedQuantity;
+//     product.stockRemaining = product.quantity - product.stockIssued;
+
+//     await product.save();
+
+//     res.status(200).send(product);
+// });
+
+router.put('/:orderId/items/:productId', async (req, res) => {
+    const { orderId, productId } = req.params;
+    const { quantityIssue } = req.body;
+  
+    try {
+      const order = await Order.findById(orderId);
+      const item = order.orderItems.find(i => i.product.toString() === productId);
+  
+      if (item) {
+        item.quantityIssue = quantityIssue;
+        await order.save();
+  
+        // Optionally: Update stock in the product collection
+        const product = await Product.findById(productId);
+        product.stock -= quantityIssue;
+        await product.save();
+      }
+  
+      res.status(200).json({ message: 'Quantity issued updated successfully.' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update quantity issued.' });
+    }
+  });
+  
 
 router.delete(`/:id`, (req, res) => {
      Product.findByIdAndDelete({
         _id: req.params.id
     }).then((product) => {
         if (product) {
-            return res.status(200).send('Product deleted');
+            return res.status(200).json({ success: true, message: 'Product deleted successfully' });
         }
-        return res.status(404).send('Product not delted');
+        return res.status(404).json({ success: false, message: 'Product not found' });
     }).catch((err) => {
         return res.status(404).json({ success: false, error: err });
     })

@@ -84,7 +84,8 @@ router.post(`/login`, async (req, res) => {
     if (user && bcrypt.compareSync(req.body.password, user.passwordHash)) {
         const token = jwt.sign(
             {
-                userId: user.id
+                userId: user.id,
+                isAdmin: user.isAdmin  // Include isAdmin field
             },
             secret,
             {
@@ -115,15 +116,20 @@ router.post(`/register`, async (req, res) => {
 })
 
 router.delete(`/:id`, (req, res) => {
-    User.findOneAndDelete({
-        _id: req.params.id
-    }).then((User) => {
-        if (User) {
-            res.status(200).send('User deleted');
-        } else {
-            res.status(500).send('User not deleted');
-        }
-    })
+    try {
+        User.findOneAndDelete({
+            _id: req.params.id
+        }).then((User) => {
+            if (User) {
+                return res.status(204).send('User deleted');
+            } else {
+               return res.status(404).send('User not deleted');
+            }
+        })
+    } catch (error) {
+        return res.status(500).send('Server error');
+    }
+
 });
 
 router.get(`/get/count`, async (req,res)=> {

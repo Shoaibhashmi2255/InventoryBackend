@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema({
         required: true,
     },
     phone: {
-        type: String,
+        type: Number,
         required: true,
     },
     isAdmin: {
@@ -24,10 +24,11 @@ const userSchema = mongoose.Schema({
     department: {
         type: String,
         default: ''
+    },
+    branch: {
+        type: String,
+        default: ''
     }
-
-
-
 });
 
 userSchema.virtual('id').get(function (){
