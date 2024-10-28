@@ -17,20 +17,28 @@ router.get(`/`, async (req, res) => {
     }
 
     if (req.query.department) {
-        filter.department = req.query.departments;
+        filter.department = req.query.department;
     }
 
     if (req.query.vendor) {
         filter.vendor = req.query.vendor;
     }
 
-    const getInventory = await Inventory.find(filter).populate('category department vendor');
+    // Populate product details when fetching inventory
+    const getInventory = await Inventory.find(filter)
+        .populate({
+            path: 'product', // Populate the product field
+            select: 'name price' // Only select the fields you want
+        })
+        // .populate('category department vendor');
 
     if (!getInventory) {
-        res.status(500).send('Inventory not Fetched');
-    };
+        return res.status(500).send('Inventory not fetched');
+    }
+
     res.status(200).send(getInventory);
 });
+
 
 router.get(`/:id`, async (req, res) => {
     const inventory = await Inventory.findById(req.params.id).populate('category department vendor');

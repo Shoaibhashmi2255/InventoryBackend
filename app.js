@@ -25,6 +25,7 @@ const inventoryRouter = require('./routers/inventory');
 const userRouter = require('./routers/users');
 const vendorRouter = require('./routers/vendors');
 const orderRouter = require('./routers/orders');
+const stockRouter = require('./routers/stocks');
 
 
 
@@ -39,6 +40,8 @@ app.use(`${api}/inventory`, inventoryRouter);
 app.use(`${api}/users`, userRouter);
 app.use(`${api}/vendors`, vendorRouter);
 app.use(`${api}/orders`,orderRouter);
+app.use(`${api}/stocks`,stockRouter);
+
 
 
 

@@ -32,7 +32,11 @@ const orderSchema = mongoose.Schema({
     },
     quantityIssue:{
         type: Number
-    }
+    },
+    otherProduct: { // New field to store the message
+      type: String,
+      required: false,
+    },
 });
 
 

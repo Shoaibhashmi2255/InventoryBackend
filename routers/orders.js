@@ -67,7 +67,9 @@ router.get(`/`, async (req, res) => {
         department: department,  // Will be null if not provided
         branch: branch,          // Will be null if not provided
         status: status,
-        user: req.body.user
+        user: req.body.user,
+        otherProduct: req.body.otherProduct || '', // Save the text area input
+        dateOrdered: req.body.dateOrdered
       });
   
       order = await order.save();
@@ -81,6 +83,33 @@ router.get(`/`, async (req, res) => {
   } catch (error) {
     res.status(500).send(error);
   }
+  
+
+  router.get('/history/:year/:month', async (req, res) => {
+    const { year, month } = req.params;
+  
+    // Calculate the start and end date for the given month
+    const startDate = new Date(year, month - 1, 1);  // Start of the month
+    const endDate = new Date(year, month, 1);        // Start of the next month
+  
+    try {
+      // Query orders created within the month
+      const orders = await Order.find({
+        dateOrdered: { $gte: startDate, $lt: endDate }
+      })
+      .populate("user", "name")
+      .populate("department", "name")
+      .populate("branch", "name")
+      .populate({
+        path: "orderItems",
+        populate: { path: "product", populate: "category" },
+      });
+  
+      res.status(200).send(orders);
+    } catch (error) {
+      res.status(500).send({ success: false, message: "Error retrieving monthly orders", error });
+    }
+  });
   
   
   router.put("/:id", async (req, res) => {
