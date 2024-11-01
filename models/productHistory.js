@@ -1,32 +1,22 @@
-// models/productHistory.js
 const mongoose = require('mongoose');
 
 const productHistorySchema = mongoose.Schema({
-    product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true,
-    },
-    quantity: {
-        type: Number,
-        required: true,
-    },
-    price: {
-        type: Number,
-        required: true,
-    },
-    month: {
-        type: String, // e.g., "October 2024"
-        required: true,
-    },
-    year: {
-        type: Number,
-        required: true,
-    },
-    dateCreated: {
-        type: Date,
-        default: Date.now,
-    }
+    name: String,
+    description: String,
+    vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' },
+    department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+    quantity: Number,
+    stockIssued: Number,
+    stockRemaining: Number,
+    price: Number,
+    marketPrice: Number,
+    scrapPrice: Number,
+    inventory: Number,
+    totalIssued: Number,
+    totalRemaining: Number,
+    totalStock: Number,
+    resetDate: { type: Date, default: Date.now } // Timestamp for each reset
 });
 
 const ProductHistory = mongoose.model('ProductHistory', productHistorySchema);

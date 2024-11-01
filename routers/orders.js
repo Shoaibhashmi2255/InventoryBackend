@@ -3,6 +3,8 @@ const {OrderItem} = require('../models/orderItem');
 const {Product} = require('../models/product');
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+
 
 router.get(`/`, async (req, res) => {
     const orderList = await Order.find()
@@ -157,57 +159,125 @@ router.get(`/`, async (req, res) => {
   //     res.status(500).send('Failed to confirm order');
   //   }
   // });
+
+
+
+  // i have to get it back if error accor
   
-  router.put('/confirm-order/:id', async (req, res) => {
-    try {
-      // Fetch the order and populate products inside orderItems
-      const order = await Order.findById(req.params.id).populate({
-        path: "orderItems",
-        populate: { path: "product", populate: "category" },
-      });
+  // router.put('/confirm-order/:id', async (req, res) => {
+  //   try {
+  //     const order = await Order.findById(req.params.id).populate({
+  //       path: "orderItems",
+  //       populate: { path: "product", populate: "category" },
+  //     });
   
-      if (!order) return res.status(404).send('Order not found');
+  //     if (!order) return res.status(404).send('Order not found');
   
-      // Loop through each order item to update product stock
-      for (let item of order.orderItems) {
-        if (!item.product) {
-          // Handle missing product gracefully
-          return res.status(400).send(`Product not found for order item: ${item._id}`);
-        }
+  //     for (let item of order.orderItems) {
+  //       if (!item.product) {
+  //         return res.status(400).send(`Product not found for order item: ${item._id}`);
+  //       }
   
-        const product = await Product.findById(item.product._id);
-        if (!product) {
-          return res.status(400).send(`Product not found with ID: ${item.product._id}`);
-        }
+  //       const product = await Product.findById(item.product._id);
+  //       if (!product) {
+  //         return res.status(400).send(`Product not found with ID: ${item.product._id}`);
+  //       }
     
-        // Initialize stock values if undefined
-        product.stockIssued = product.stockIssued || 0;
-        product.stockRemaining = product.stockRemaining ?? product.quantity;
+  //       product.stockIssued = product.stockIssued || 0;
+  //       product.stockRemaining = product.stockRemaining ?? product.quantity;
   
-        if (product.stockRemaining < item.quantity) {
-          return res.status(400).json({ 
-            success: false, 
-            message: `Insufficient stock for product: ${product.name}`, 
-            product: product.name 
-          });        }
+  //       if (product.stockRemaining < item.quantity) {
+  //         return res.status(400).json({ 
+  //           success: false, 
+  //           message: `Insufficient stock for product: ${product.name}`, 
+  //           product: product.name 
+  //         });        }
   
-        // Update stock
-        product.stockIssued += item.quantity;
-        product.stockRemaining -= item.quantity;
-        await product.save();
-      }
+  //       product.stockIssued += item.quantity;
+  //       product.stockRemaining -= item.quantity;
+  //       await product.save();
+  //     }
   
-      // Mark the order as confirmed
-      order.status = 'confirmed';
-      await order.save();
+  //     order.status = 'confirmed';
+  //     await order.save();
   
-      res.status(200).send(order);
-    } catch (error) {
-      res.status(500).send('Failed to confirm order');
+  //     res.status(200).send(order);
+  //   } catch (error) {
+  //     res.status(500).send('Failed to confirm order');
+  //   }
+  // });
+  
+router.put('/confirm-order/:id', async (req, res) => {
+  const session = await mongoose.startSession();
+  
+  try {
+    session.startTransaction();
+    
+    // Fetch the order and populate products inside orderItems
+    const order = await Order.findById(req.params.id).populate({
+      path: "orderItems",
+      populate: { path: "product", populate: "category" },
+    });
+    
+    if (!order) {
+      await session.abortTransaction();
+      return res.status(404).send('Order not found');
     }
-  });
-  
-  
+    
+    for (let item of order.orderItems) {
+      if (!item.product) {
+        await session.abortTransaction();
+        return res.status(400).send(`Product not found for order item: ${item._id}`);
+      }
+
+      const product = await Product.findById(item.product._id).session(session);
+      
+      if (!product) {
+        await session.abortTransaction();
+        return res.status(400).send(`Product not found with ID: ${item.product._id}`);
+      }
+      
+      product.stockIssued = product.stockIssued || 0;
+      product.stockRemaining = product.stockRemaining ?? product.quantity;
+
+      if (product.stockRemaining < item.quantity) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for product: ${product.name}`,
+          product: product.name
+        });
+      }
+
+      // Update stock
+      product.stockIssued += item.quantity;
+      product.stockRemaining -= item.quantity;
+      await product.save({ session });
+    }
+
+    // Mark the order as confirmed
+    order.status = 'confirmed';
+    await order.save({ session });
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+    
+    // Fetch the updated order with populated product data again
+    const updatedOrder = await Order.findById(req.params.id)
+      .populate({
+        path: "orderItems",
+        populate: { path: "product", select: "name stockIssued stockRemaining quantity" },
+      });
+
+    res.status(200).send(updatedOrder);
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).send('Failed to confirm order');
+  }
+});
+
 
 router.put('/update-order-item/:orderId/:itemId', async (req, res) => {
   try {

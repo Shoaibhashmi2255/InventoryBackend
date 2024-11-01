@@ -83,48 +83,43 @@ router.post(`/`, async (req, res) => {
 
 router.put(`/:id`, async (req, res) => {
     try {
-        if(!mongoose.isValidObjectId(req.params.id)){
-            res.status(400).send('Invalid Product Id!');
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).send('Invalid Product Id!');
         }
-    
-        const category = await Category.findById(req.body.category);
-        if(!category) res.status(400).send('invalid Category');
-    
-        const vendor = await Vendor.findById(req.body.vendor);
-        if(!vendor) res.status(400).send('invalid vendor');
-    
-        // const department = await Department.findById(req.body.department);
-        // if(!department) res.status(400).send('invalid department');
         
-        const updProduct = await Product.findByIdAndUpdate(
-            {
-                _id: req.params.id
-            },
-            {
-                name: req.body.name,
-                description: req.body.description,
-                vendor: req.body.vendor,
-                // department: req.body.department,
-                category: req.body.category,
-                quantity: req.body.quantity,
-                price: req.body.price,
-                scrapPrice: req.body.scrapPrice,
-                marketPtice: req.body.marketPrice,
-                inlineFormulas: req.body.inlineFormulas,
-                dateCreated: req.body.dateCreated,
-            },
-            {
-                new: true
-            });
-    
-            if(!updProduct){
-                res.status(500).send('Product not updated');
-            }
-            res.status(200).send(updProduct);
+        // Validate related entities
+        const category = await Category.findById(req.body.category);
+        if (!category) return res.status(400).send('Invalid Category');
+        
+        const vendor = await Vendor.findById(req.body.vendor);
+        if (!vendor) return res.status(400).send('Invalid Vendor');
+        
+        // Find the product by ID
+        let product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).send('Product not found');
+        
+        // Update product fields
+        product.name = req.body.name;
+        product.description = req.body.description;
+        product.vendor = req.body.vendor;
+        product.category = req.body.category;
+        product.quantity = req.body.quantity;
+        product.price = req.body.price;
+        product.scrapPrice = req.body.scrapPrice;
+        product.marketPrice = req.body.marketPrice;
+        product.inlineFormulas = req.body.inlineFormulas;
+        
+        // Recalculate totalStock and stockRemaining based on new quantity
+        product.totalStock = product.inventory + product.quantity;
+        product.stockRemaining = product.totalStock - product.stockIssued;
+        
+        // Save the updated product
+        product = await product.save();
+        
+        res.status(200).send(product);
     } catch (error) {
-        res.status(400).send(error,'Internal Server erorr');
+        res.status(400).send(error);
     }
-
 });
 
 // router.put('/:id/issue-stock', async (req, res) => {

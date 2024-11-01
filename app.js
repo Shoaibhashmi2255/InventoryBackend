@@ -5,7 +5,7 @@ require('dotenv/config');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authJWT = require('./helpers/jwt');
-
+require('./tasks/monthlytasks/montly-reset-quantites');
 
 //Middleware
 app.use(express.json());
@@ -26,6 +26,7 @@ const userRouter = require('./routers/users');
 const vendorRouter = require('./routers/vendors');
 const orderRouter = require('./routers/orders');
 const stockRouter = require('./routers/stocks');
+const historyRouter = require('./history/stockHistory/productHistory');
 
 
 
@@ -41,6 +42,8 @@ app.use(`${api}/users`, userRouter);
 app.use(`${api}/vendors`, vendorRouter);
 app.use(`${api}/orders`,orderRouter);
 app.use(`${api}/stocks`,stockRouter);
+app.use(`${api}/phistory`,historyRouter);
+
 
 
 

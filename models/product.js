@@ -31,9 +31,7 @@ const productSchema = mongoose.Schema({
     stockIssued: { type: Number, default: 0 }, // Stock issued
     stockRemaining: { 
         type: Number, 
-        default: function() { 
-            return this.quantity - this.stockIssued;
-        }
+        default: 0
     },
     price: {
         type: Number,
@@ -53,8 +51,37 @@ const productSchema = mongoose.Schema({
     dateCreated: {
         type:Date,
         default: Date.now
+    },
+    inventory: {
+        type: Number,
+        default: 0
+    },
+    totalIssued:{
+        type:Number,
+        default: 0
+    },
+    // totalRemaining:{
+    //     type:Number,
+    //     default: 0
+    // },
+    totalStock:{
+        type:Number,
+        default: 0
     }
-})
+});
+
+// Pre-save middleware to calculate totalStock and stockRemaining before saving
+productSchema.pre('save', function(next) {
+    // Recalculate totalStock as inventory + quantity
+    this.totalStock = this.inventory + this.quantity;
+
+    // Set stockRemaining to totalStock if stockIssued is zero; otherwise, calculate the difference
+    this.stockRemaining = this.stockIssued ? (this.totalStock - this.stockIssued) : this.totalStock;
+
+    next();
+});
+
+
 
 productSchema.virtual('id').get(function () {
     return this._id.toHexString();
