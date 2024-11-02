@@ -28,6 +28,10 @@ const productSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
+    newQuantityOFProduct: {    
+        type: Number,
+        default: 0
+    },
     stockIssued: { type: Number, default: 0 }, // Stock issued
     stockRemaining: { 
         type: Number, 
@@ -37,14 +41,14 @@ const productSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
-    marketPrice: {
-        type: Number,
-        default: 0
-    },
-    scrapPrice: {
-        type: Number,
-        default: 0
-    },
+    // marketPrice: {
+    //     type: Number,
+    //     default: 0
+    // },
+    // scrapPrice: {
+    //     type: Number,
+    //     default: 0
+    // },
     inlineFormulas: {
         type: String
     },
@@ -67,7 +71,9 @@ const productSchema = mongoose.Schema({
     totalStock:{
         type:Number,
         default: 0
-    }
+    },
+    newQuantityDates: [{ type: Date }], // Array to store dates when new quantities are added
+    // Other fields
 });
 
 // Pre-save middleware to calculate totalStock and stockRemaining before saving

@@ -67,8 +67,9 @@ router.post(`/`, async (req, res) => {
         category: req.body.category,
         quantity: req.body.quantity,
         price: req.body.price,
-        scrapPrice: req.body.scrapPrice,
-        marketPtice: req.body.marketPrice,
+        // scrapPrice: req.body.scrapPrice,
+        // marketPtice: req.body.marketPrice,
+        newQuantityOFProduct: req.body.newQuantityOFProduct,
         inlineFormulas: req.body.inlineFormulas,
         dateCreated: req.body.dateCreated,
     });
@@ -86,41 +87,35 @@ router.put(`/:id`, async (req, res) => {
         if (!mongoose.isValidObjectId(req.params.id)) {
             return res.status(400).send('Invalid Product Id!');
         }
-        
-        // Validate related entities
-        const category = await Category.findById(req.body.category);
-        if (!category) return res.status(400).send('Invalid Category');
-        
-        const vendor = await Vendor.findById(req.body.vendor);
-        if (!vendor) return res.status(400).send('Invalid Vendor');
-        
-        // Find the product by ID
+
         let product = await Product.findById(req.params.id);
         if (!product) return res.status(404).send('Product not found');
-        
-        // Update product fields
+
+        // Check if newQuantityOFProduct is provided in the request
+        if (req.body.newQuantityOFProduct != null) {
+            // Update the main quantity by adding the new quantity
+            product.quantity += req.body.newQuantityOFProduct;
+
+            // Update the new quantity and log the current date
+            product.newQuantityOFProduct = req.body.newQuantityOFProduct;
+            product.newQuantityDates.push(new Date());
+        }
+
+        // Update other fields if necessary
         product.name = req.body.name;
         product.description = req.body.description;
         product.vendor = req.body.vendor;
         product.category = req.body.category;
-        product.quantity = req.body.quantity;
         product.price = req.body.price;
-        product.scrapPrice = req.body.scrapPrice;
-        product.marketPrice = req.body.marketPrice;
-        product.inlineFormulas = req.body.inlineFormulas;
-        
-        // Recalculate totalStock and stockRemaining based on new quantity
-        product.totalStock = product.inventory + product.quantity;
-        product.stockRemaining = product.totalStock - product.stockIssued;
-        
-        // Save the updated product
+
+        // Save the product
         product = await product.save();
-        
         res.status(200).send(product);
     } catch (error) {
         res.status(400).send(error);
     }
 });
+
 
 // router.put('/:id/issue-stock', async (req, res) => {
 //     const product = await Product.findById(req.params.id);

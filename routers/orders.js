@@ -306,17 +306,32 @@ router.put('/update-order-item/:orderId/:itemId', async (req, res) => {
   
 router.delete("/:id", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("orderItems");
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
+    // Check if the order is confirmed
+    if (order.status === 'confirmed') {
+      // Adjust stock for each product in the confirmed order
+      await Promise.all(order.orderItems.map(async (orderItemId) => {
+        const orderItem = await OrderItem.findById(orderItemId);
+        if (orderItem) {
+          const product = await Product.findById(orderItem.product);
+          if (product) {
+            product.stockIssued -= orderItem.quantity;  // Revert the stockIssued
+            product.stockRemaining += orderItem.quantity;  // Adjust stockRemaining
+            await product.save();
+          }
+        }
+      }));
+    }
 
-    await Order.findByIdAndDelete(req.params.id);
-
-    await Promise.all(order.orderItems.map(async (orderItem) => {
-      await OrderItem.findByIdAndDelete(orderItem);
+    // Delete the order and its items regardless of confirmation status
+    await Promise.all(order.orderItems.map(async (orderItemId) => {
+      await OrderItem.findByIdAndDelete(orderItemId);
     }));
+    await Order.findByIdAndDelete(req.params.id);
 
     return res.status(200).json({ success: true, message: "Order and its items deleted" });
   } catch (err) {
