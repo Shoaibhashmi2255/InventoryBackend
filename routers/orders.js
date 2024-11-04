@@ -115,19 +115,53 @@ router.get(`/`, async (req, res) => {
   
   
   router.put("/:id", async (req, res) => {
-    const order = await Order.findByIdAndUpdate(
-      { _id: req.params.id },
-      {
+    try {
+      // Update order items if provided
+      let orderItemsIds = [];
+      if (req.body.orderItems && req.body.orderItems.length > 0) {
+        orderItemsIds = await Promise.all(
+          req.body.orderItems.map(async (orderItem) => {
+            let newOrderItem = new OrderItem({
+              quantity: orderItem.quantity,
+              product: orderItem.product,
+            });
+            newOrderItem = await newOrderItem.save();
+            return newOrderItem._id;
+          })
+        );
+      }
+  
+      // Build the update object dynamically based on provided data
+      const updateData = {
         status: req.body.status,
-      },
-      { new: true }
-    );
-    if (!order) {
-      return res.status(500).send("Order not found!");
+        otherProduct: req.body.otherProduct || '',
+        user: req.body.user,
+        dateOrdered: req.body.dateOrdered,
+      };
+  
+      // Only set these fields if they are provided
+      if (orderItemsIds.length > 0) updateData.orderItems = orderItemsIds;
+      if (req.body.department) updateData.department = req.body.department;
+      if (req.body.branch) updateData.branch = req.body.branch;
+  
+      // Find the order by id and update it with the new data
+      const order = await Order.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true }
+      );
+  
+      if (!order) {
+        return res.status(500).send("Order not found!");
+      }
+  
+      res.send(order);
+    } catch (error) {
+      console.error("Error updating order:", error);
+      res.status(500).send({ success: false, message: "Error updating order", error });
     }
-    res.send(order);
   });
-
+  
   // router.put('/confirm-order/:id', async (req, res) => {
   //   try {
   //     const order = await Order.findById(req.params.id).populate('orderItems.product');
