@@ -314,26 +314,31 @@ router.put('/confirm-order/:id', async (req, res) => {
 
 
 router.put('/update-order-item/:orderId/:itemId', async (req, res) => {
+  const { orderId, itemId } = req.params;
+  const { quantity } = req.body;
+
   try {
-    const { orderId, itemId } = req.params;
-    const { quantityIssue } = req.body;
+    // Find the order and the specific item to update
+    const order = await Order.findById(orderId);
+    const orderItem = order.orderItems.id(itemId);
+    
+    if (!orderItem) {
+      return res.status(404).send({ message: 'Order item not found' });
+    }
 
-    // Ensure the order and order item exist
-    const order = await Order.findById(orderId).populate('orderItems');
-    if (!order) return res.status(404).send('Order not found');
-
-    const orderItem = await OrderItem.findById(itemId);
-    if (!orderItem) return res.status(404).send('Order item not found');
-
-    // Update the quantity issue
-    orderItem.quantityIssue = quantityIssue;
-    await orderItem.save();
-
-    res.status(200).send(orderItem);
+    // Update the quantity
+    orderItem.quantity = quantity;
+    
+    // Save the updated order
+    await order.save();
+    
+    res.status(200).send({ message: 'Order item updated successfully' });
   } catch (error) {
-    res.status(500).send({ success: false, message: 'Failed to update quantity issue', error });
+    res.status(500).send({ message: 'Error updating order item', error });
   }
 });
+
+
 
 
 

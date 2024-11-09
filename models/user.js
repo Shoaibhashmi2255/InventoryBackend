@@ -22,8 +22,9 @@ const userSchema = mongoose.Schema({
         default: false,
     },
     department: {
-        type: String,
-        default: ''
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+        required: false
     },
     branch: {
         type: String,

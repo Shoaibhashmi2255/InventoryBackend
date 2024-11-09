@@ -1,5 +1,6 @@
 const { User } = require('../models/user');
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -14,14 +15,24 @@ router.get(`/`, async (req, res) => {
     res.status(200).send(getUser);
 });
 
-router.get(`/:id`, async (req, res) => {
-    const user = await User.findById(req.params.id).select('-passwordHash');
-
-    if (!user) {
-        res.status(500).send('Product not found in User');
+router.get('/:id', async (req, res) => {
+    const userId = req.params.id;
+  
+    // Validate if ID is defined and is a valid MongoDB ObjectId
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid or missing user ID' });
     }
-    res.status(200).send(user);
-});
+  
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
 router.post(`/`, async (req, res) => {
     let user = new User({
@@ -75,7 +86,7 @@ router.put(`/:id`, async (req, res) => {
 });
 
 router.post(`/login`, async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: req.body.email }).populate({path: 'department'});
     const secret = process.env.secret;
     if (!user) {
         return res.status(400).send('User not found');
@@ -85,14 +96,17 @@ router.post(`/login`, async (req, res) => {
         const token = jwt.sign(
             {
                 userId: user.id,
-                isAdmin: user.isAdmin  // Include isAdmin field
+                isAdmin: user.isAdmin,  // Include isAdmin field,
+                userEmail : user.email,
+                userName: user.name,
+                department: user.department.name 
             },
             secret,
             {
                 expiresIn: '1h'
             }
         )
-        return res.status(200).send({ user: user.email, token: token });
+        return res.status(200).send({ token: token });
     };
     return res.status(400).send('Password is wrong');
 });
