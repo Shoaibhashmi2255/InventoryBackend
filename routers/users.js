@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 router.get(`/`, async (req, res) => {
-    
+
     const getUser = await User.find().select('-passwordHash');
 
     if (!getUser) {
@@ -17,44 +17,51 @@ router.get(`/`, async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     const userId = req.params.id;
-  
+
     // Validate if ID is defined and is a valid MongoDB ObjectId
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid or missing user ID' });
+        return res.status(400).json({ error: 'Invalid or missing user ID' });
     }
-  
+
     try {
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      res.json(user);
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(user);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
-  });
+});
 
 router.post(`/`, async (req, res) => {
-    let user = new User({
+    const userData = {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
         isAdmin: req.body.isAdmin,
         passwordHash: bcrypt.hashSync(req.body.password, 10),
-        department: req.body.department
-    });
+    };
 
-    user = await user.save();
-
-    if (!user) {
-        res.status(500).send('Post not created');
+    // Add department and branch only if they are provided
+    if (req.body.department) {
+        userData.department = req.body.department;
     }
-    res.status(200).send(user);
+    if (req.body.branch) {
+        userData.branch = req.body.branch;
+    }
 
+    let user = new User(userData);
+    try {
+        user = await user.save();
+        res.status(200).send(user);
+    } catch (error) {
+        res.status(500).send('User not created');
+    }
 });
 
-router.put(`/:id`, async (req, res) => {
 
+router.put(`/:id`, async (req, res) => {
     const userExist = await User.findById(req.params.id);
     let newPassword;
     if (req.body.password) {
@@ -63,30 +70,40 @@ router.put(`/:id`, async (req, res) => {
         newPassword = userExist.passwordHash;
     }
 
-    const updateUser = await User.findByIdAndUpdate({
-        _id: req.params.id
-    },
-        {
-            name: req.body.name,
-            email: req.body.email,
-            phone: req.body.phone,
-            isAdmin: req.body.isAdmin,
-            passwordHash: newPassword,
-            department: req.body.department
-        },
-        {
-            new: true
-        });
+    const updateData = {
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        isAdmin: req.body.isAdmin,
+        passwordHash: newPassword,
+    };
 
-    if (!updateUser) {
-        res.status(500).send('User not updated');
+    if (req.body.department) {
+        updateData.department = req.body.department;
     }
-    res.status(200).send(updateUser);
+    if (req.body.branch) {
+        updateData.branch = req.body.branch;
+    }
 
+    try {
+        const updateUser = await User.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true }
+        );
+
+        if (!updateUser) {
+            res.status(500).send('User not updated');
+        } else {
+            res.status(200).send(updateUser);
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
 });
 
 router.post(`/login`, async (req, res) => {
-    const user = await User.findOne({ email: req.body.email }).populate({path: 'department'});
+    const user = await User.findOne({ email: req.body.email }).populate({ path: 'department branch' });
     const secret = process.env.secret;
     if (!user) {
         return res.status(400).send('User not found');
@@ -97,9 +114,10 @@ router.post(`/login`, async (req, res) => {
             {
                 userId: user.id,
                 isAdmin: user.isAdmin,  // Include isAdmin field,
-                userEmail : user.email,
+                userEmail: user.email,
                 userName: user.name,
-                department: user.department.name 
+                department: user.department?.name,
+                branch: user.branch?.name
             },
             secret,
             {
@@ -118,7 +136,8 @@ router.post(`/register`, async (req, res) => {
         phone: req.body.phone,
         isAdmin: req.body.isAdmin,
         passwordHash: bcrypt.hashSync(req.body.password, 10),
-        department: req.body.department
+        department: req.body.department,
+        branch: req.body.branch
     });
 
     registerUser = await registerUser.save();
@@ -137,7 +156,7 @@ router.delete(`/:id`, (req, res) => {
             if (User) {
                 return res.status(204).send('User deleted');
             } else {
-               return res.status(404).send('User not deleted');
+                return res.status(404).send('User not deleted');
             }
         })
     } catch (error) {
@@ -146,14 +165,14 @@ router.delete(`/:id`, (req, res) => {
 
 });
 
-router.get(`/get/count`, async (req,res)=> {
+router.get(`/get/count`, async (req, res) => {
     const userCount = await User.countDocuments();
 
-    if(!userCount){
-        res.status(400).json({success: false});
+    if (!userCount) {
+        res.status(400).json({ success: false });
     }
     res.status(200).send({
-        userCount : userCount
+        userCount: userCount
     })
 });
 
