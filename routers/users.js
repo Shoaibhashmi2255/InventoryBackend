@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 
 router.get(`/`, async (req, res) => {
 
-    const getUser = await User.find().select('-passwordHash');
+    const getUser = await User.find().select('-passwordHash').populate('branch department');
 
     if (!getUser) {
         res.status(500).send('User not Fetched');
@@ -24,15 +24,21 @@ router.get('/:id', async (req, res) => {
     }
 
     try {
-        const user = await User.findById(userId);
+        // Fetch the user by ID and populate department and branch fields
+        const user = await User.findById(userId)
+            .populate('department')  // Populate department object
+            .populate('branch');     // Populate branch object
+
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-        res.json(user);
+
+        res.status(200).json(user); // Send the populated user object
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 router.post(`/`, async (req, res) => {
     const userData = {
@@ -61,21 +67,55 @@ router.post(`/`, async (req, res) => {
 });
 
 
-router.put(`/:id`, async (req, res) => {
-    const userExist = await User.findById(req.params.id);
-    let newPassword;
-    if (req.body.password) {
-        newPassword = bcrypt.hashSync(req.body.password, 10);
-    } else {
-        newPassword = userExist.passwordHash;
-    }
+// router.put(`/:id`, async (req, res) => {
+//     const userExist = await User.findById(req.params.id);
+//     let newPassword;
+//     if (req.body.password) {
+//         newPassword = bcrypt.hashSync(req.body.password, 10);
+//     } else {
+//         newPassword = userExist.passwordHash;
+//     }
 
+//     const updateData = {
+//         name: req.body.name,
+//         email: req.body.email,
+//         phone: req.body.phone,
+//         isAdmin: req.body.isAdmin,
+//         passwordHash: newPassword,
+//     };
+
+//     if (req.body.department) {
+//         updateData.department = req.body.department;
+//     }
+//     if (req.body.branch) {
+//         updateData.branch = req.body.branch;
+//     }
+
+//     try {
+//         const updateUser = await User.findByIdAndUpdate(
+//             req.params.id,
+//             updateData,
+//             { new: true }
+//         );
+
+//         if (!updateUser) {
+//             res.status(500).send('User not updated');
+//         } else {
+//             res.status(200).send(updateUser);
+//         }
+//     } catch (error) {
+//         res.status(500).send(error.message);
+//     }
+// });
+
+router.put('/:id', async (req, res) => {
+    const userExist = await User.findById(req.params.id);
     const updateData = {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
         isAdmin: req.body.isAdmin,
-        passwordHash: newPassword,
+        passwordHash: req.body.password ? bcrypt.hashSync(req.body.password, 10) : userExist.passwordHash,
     };
 
     if (req.body.department) {
@@ -86,21 +126,16 @@ router.put(`/:id`, async (req, res) => {
     }
 
     try {
-        const updateUser = await User.findByIdAndUpdate(
-            req.params.id,
-            updateData,
-            { new: true }
-        );
-
+        const updateUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
         if (!updateUser) {
-            res.status(500).send('User not updated');
-        } else {
-            res.status(200).send(updateUser);
+            return res.status(500).send('User not updated');
         }
+        res.status(200).send(updateUser);
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
+
 
 router.post(`/login`, async (req, res) => {
     const user = await User.findOne({ email: req.body.email }).populate({ path: 'department branch' });
