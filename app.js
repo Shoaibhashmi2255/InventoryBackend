@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const authJWT = require('./helpers/jwt');
 require('./tasks/monthlytasks/montly-reset-quantites');
+const path = require('path');
 
 //Middleware
 app.use(express.json());
@@ -14,6 +15,7 @@ app.use(cors());
 app.options('*', cors());
 // app.use(authJWT());
 
+app.use((express.static(path.join(__dirname, '/front-end'))));
 const api = process.env.API_URL;
 
 // models
@@ -44,6 +46,9 @@ app.use(`${api}/orders`,orderRouter);
 app.use(`${api}/stocks`,stockRouter);
 app.use(`${api}/phistory`,historyRouter);
 
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '/front-end/index.html'));
+})
 
 
 
