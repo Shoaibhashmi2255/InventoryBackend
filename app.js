@@ -15,10 +15,7 @@ app.use(cors());
 app.options('*', cors());
 // app.use(authJWT());
 
-app.use('/inventory-management', express.static(path.join(__dirname, '/inventory-management')));
-app.use('/inventory', express.static(path.join(__dirname, '/inventory')));
-
-
+app.use((express.static(path.join(__dirname, '/inventory-management'))));
 const api = process.env.API_URL;
 
 // models
@@ -49,13 +46,9 @@ app.use(`${api}/orders`,orderRouter);
 app.use(`${api}/stocks`,stockRouter);
 app.use(`${api}/phistory`,historyRouter);
 
-app.get('/inventory-management', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '/inventory-management/index.html'));
-});
-
-app.get('/inventory', (req, res) => {
-  res.sendFile(path.join(__dirname, '/inventory/index.html'));
-});
+})
 
 
 
