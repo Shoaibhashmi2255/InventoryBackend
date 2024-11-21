@@ -15,9 +15,6 @@ app.use(cors());
 app.options('*', cors());
 // app.use(authJWT());
 
-app.use('/inventory-management', express.static(path.join(__dirname, '/inventory-management')));
-app.use('/inventory', express.static(path.join(__dirname, '/inventory')));
-
 
 const api = process.env.API_URL;
 
@@ -49,17 +46,12 @@ app.use(`${api}/orders`,orderRouter);
 app.use(`${api}/stocks`,stockRouter);
 app.use(`${api}/phistory`,historyRouter);
 
-app.get('/inventory-management', (req, res) => {
-  res.sendFile(path.join(__dirname, '/inventory-management/index.html'));
+
+
+
+app.get('/', (req, res) => {
+  res.send('Hello World');
 });
-
-app.get('/inventory', (req, res) => {
-  res.sendFile(path.join(__dirname, '/inventory/index.html'));
-});
-
-
-
-
 
 
 //password'dkOn4wQbAUYp82mV'
