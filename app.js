@@ -7,6 +7,8 @@ const cors = require('cors');
 const authJWT = require('./helpers/jwt');
 require('./tasks/monthlytasks/montly-reset-quantites');
 const path = require('path');
+const { authorize } = require('./middleWare/auth'); 
+
 
 //Middleware
 app.use(express.json());

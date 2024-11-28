@@ -385,6 +385,33 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.delete('/:orderId/items/:itemId', async (req, res) => {
+  const { orderId, itemId } = req.params;
+
+  try {
+    // Find the order and verify that the item belongs to it
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (!order.orderItems.includes(itemId)) {
+      return res.status(400).json({ success: false, message: 'Item does not belong to this order' });
+    }
+
+    // Remove the item from the order
+    order.orderItems = order.orderItems.filter(id => id.toString() !== itemId);
+    await order.save();
+
+    // Delete the order item from the database
+    await OrderItem.findByIdAndDelete(itemId);
+
+    return res.status(200).json({ success: true, message: 'Order item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting order item:', error);
+    return res.status(500).json({ success: false, message: 'Error deleting order item', error });
+  }
+});
 
 
 

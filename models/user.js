@@ -17,9 +17,10 @@ const userSchema = mongoose.Schema({
         type: Number,
         required: true,
     },
-    isAdmin: {
-        type: Boolean,
-        default: false,
+    role: { 
+        type: String, 
+        enum: ['admin', 'semi-admin', 'user'], // Define allowed roles
+        default: 'user'                       // Default role for new users
     },
     department: {
         type: mongoose.Schema.Types.ObjectId,

@@ -45,7 +45,7 @@ router.post(`/`, async (req, res) => {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
-        isAdmin: req.body.isAdmin,
+        role: req.body.role || 'user',
         passwordHash: bcrypt.hashSync(req.body.password, 10),
     };
 
@@ -62,6 +62,7 @@ router.post(`/`, async (req, res) => {
         user = await user.save();
         res.status(200).send(user);
     } catch (error) {
+        console.error(error);  // Log the error
         res.status(500).send('User not created');
     }
 });
@@ -80,7 +81,7 @@ router.post(`/`, async (req, res) => {
 //         name: req.body.name,
 //         email: req.body.email,
 //         phone: req.body.phone,
-//         isAdmin: req.body.isAdmin,
+//         role: req.body.role || 'user',
 //         passwordHash: newPassword,
 //     };
 
@@ -114,7 +115,7 @@ router.put('/:id', async (req, res) => {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
-        isAdmin: req.body.isAdmin,
+        role: req.body.role || 'user',
         passwordHash: req.body.password ? bcrypt.hashSync(req.body.password, 10) : userExist.passwordHash,
     };
 
@@ -128,7 +129,7 @@ router.put('/:id', async (req, res) => {
     try {
         const updateUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
         if (!updateUser) {
-            return res.status(500).send('User not updated');
+            return res.status(500).send('User not updated' ,error.message);
         }
         res.status(200).send(updateUser);
     } catch (error) {
@@ -148,7 +149,7 @@ router.post(`/login`, async (req, res) => {
         const token = jwt.sign(
             {
                 userId: user.id,
-                isAdmin: user.isAdmin,  // Include isAdmin field,
+                role: user.role,  // Include isAdmin field,
                 userEmail: user.email,
                 userName: user.name,
                 department: user.department?.name,
@@ -169,7 +170,7 @@ router.post(`/register`, async (req, res) => {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
-        isAdmin: req.body.isAdmin,
+        role: req.body.role || 'user',
         passwordHash: bcrypt.hashSync(req.body.password, 10),
         department: req.body.department,
         branch: req.body.branch
