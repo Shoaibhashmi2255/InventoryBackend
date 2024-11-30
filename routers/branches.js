@@ -21,7 +21,7 @@ router.get(`/`, async (req, res) => {
 router.get(`/:id`, async (req, res) => {
     try {
         const findBranch = await Branch.findById({ _id: req.params.id });
-        if(!findBranch){
+        if (!findBranch) {
             res.status(500).send('Branch not found');
         }
         res.status(200).send(findBranch);
@@ -83,12 +83,32 @@ router.delete(`/:id`, (req, res) => {
             _id: req.params.id
         }).then((branch) => {
             if (branch) {
-                return res.status(200).json({ success: true, message: 'Branch deleted' });  
+                return res.status(200).json({ success: true, message: 'Branch deleted' });
             }
-            return res.status(404).json({ success: false, message: 'Branch not found' });   
+            return res.status(404).json({ success: false, message: 'Branch not found' });
         }).catch((error) => {
             return res.status(500).json({ success: false, message: 'Internal server error', error: error });
         })
 });
+
+router.get(`/get/count`, async (req, res) => {
+    try {
+        const branchCount = await Branch.countDocuments();
+        res.status(200).json({ success: true, count: branchCount });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// router.get(`/get/count`, async (req, res) => {
+//     const userCount = await User.countDocuments();
+//     if (!userCount) {
+//       res.status(500).json({ success: false });
+//     }
+//     res.send({
+//         userCount: userCount,
+//     });
+//   });
+
 
 module.exports = router;

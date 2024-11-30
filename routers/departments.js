@@ -67,4 +67,14 @@ router.delete(`/:id`, (req, res) => {
 });
 
 
+router.get(`/get/count`, async (req, res) => {
+    try {
+        const departmentCount = await Department.countDocuments();
+        res.status(200).json({ success: true, count: departmentCount });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+
 module.exports = router;

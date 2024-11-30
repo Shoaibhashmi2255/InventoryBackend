@@ -202,14 +202,12 @@ router.delete(`/:id`, (req, res) => {
 });
 
 router.get(`/get/count`, async (req, res) => {
-    const userCount = await User.countDocuments();
-
-    if (!userCount) {
-        res.status(400).json({ success: false });
+    try {
+        const userCount = await User.countDocuments();
+        res.status(200).json({ success: true, count: userCount });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
-    res.status(200).send({
-        userCount: userCount
-    })
 });
 
 module.exports = router;

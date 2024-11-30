@@ -24,10 +24,10 @@ router.post(`/`, async (req, res) => {
     let vendor = new Vendor({
         name: req.body.name,
         email: req.body.email,
-        phone: req.body.phone,
-        isWorking: req.body.isWorking,
-        price: req.body.price,
-        vendorType: req.body.vendorType
+        // phone: req.body.phone,
+        // isWorking: req.body.isWorking,
+        // price: req.body.price,
+        // vendorType: req.body.vendorType
     });
 
     vendor = await vendor.save();
@@ -45,10 +45,10 @@ router.put(`/:id`, async (req, res) => {
         {
             name: req.body.name,
             email: req.body.email,
-            phone: req.body.phone,
-            isWorking: req.body.isWorking,
-            price: req.body.price,
-            vendorType: req.body.vendorType
+            // phone: req.body.phone,
+            // isWorking: req.body.isWorking,
+            // price: req.body.price,
+            // vendorType: req.body.vendorType
         },
         {
             new: true

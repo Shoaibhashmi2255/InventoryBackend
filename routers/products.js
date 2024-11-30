@@ -187,4 +187,13 @@ router.get(`/get/count`, async (req, res) => {
     });
 });
 
+router.get(`/get/count`, async (req, res) => {
+    try {
+        const productCount = await Product.countDocuments();
+        res.status(200).json({ success: true, count: productCount });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
 module.exports = router; 

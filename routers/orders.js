@@ -1,6 +1,8 @@
 const { Order } = require('../models/order');
 const { OrderItem } = require('../models/orderItem');
 const { Product } = require('../models/product');
+const { Branch } = require('../models/branch');
+const { Department } = require('../models/department');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
@@ -427,5 +429,67 @@ router.get(`/get/userorders/:userid`, async (req, res) => {
   }
   res.send(userOrderList);
 });
+
+
+// Endpoint to get summary of confirmed orders by branches and departments
+router.get('/summary/:year/:month', async (req, res) => {
+  const { year, month } = req.params;
+
+  const startDate = new Date(year, month - 1, 1); // Start of the month
+  const endDate = new Date(year, month, 1);      // Start of the next month
+
+  try {
+    // Fetch orders for the given month and filter for pending and confirmed
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          dateOrdered: { $gte: startDate, $lt: endDate },
+          status: { $in: ["Pending", "confirmed"] },
+        },
+      },
+      {
+        $group: {
+          _id: { branch: "$branch", department: "$department" },
+        },
+      },
+    ]);
+
+    const branchesWithOrders = new Set(
+      orders.map((order) => order._id.branch?.toString())
+    );
+    const departmentsWithOrders = new Set(
+      orders.map((order) => order._id.department?.toString())
+    );
+
+    // Total branches and departments
+    const totalBranches = await Branch.countDocuments();
+    const totalDepartments = await Department.countDocuments();
+
+    // Calculate numbers
+    const branchesWithOrdersCount = branchesWithOrders.size;
+    const branchesWithoutOrdersCount = totalBranches - branchesWithOrdersCount;
+
+    const departmentsWithOrdersCount = departmentsWithOrders.size;
+    const departmentsWithoutOrdersCount = totalDepartments - departmentsWithOrdersCount;
+
+    res.status(200).send({
+      branches: {
+        withOrders: branchesWithOrdersCount,
+        withoutOrders: branchesWithoutOrdersCount,
+      },
+      departments: {
+        withOrders: departmentsWithOrdersCount,
+        withoutOrders: departmentsWithoutOrdersCount,
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Error fetching summary",
+      error,
+    });
+  }
+});
+
 
 module.exports = router;
