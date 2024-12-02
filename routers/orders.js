@@ -430,7 +430,6 @@ router.get(`/get/userorders/:userid`, async (req, res) => {
   res.send(userOrderList);
 });
 
-
 // Endpoint to get summary of confirmed orders by branches and departments
 router.get('/summary/:year/:month', async (req, res) => {
   const { year, month } = req.params;
@@ -449,7 +448,7 @@ router.get('/summary/:year/:month', async (req, res) => {
       },
       {
         $group: {
-          _id: { branch: "$branch", department: "$department" },
+          _id: { branch: "$branch" },
         },
       },
     ]);
@@ -457,29 +456,28 @@ router.get('/summary/:year/:month', async (req, res) => {
     const branchesWithOrders = new Set(
       orders.map((order) => order._id.branch?.toString())
     );
-    const departmentsWithOrders = new Set(
-      orders.map((order) => order._id.department?.toString())
+
+    // Fetch all branches
+    const allBranches = await Branch.find({}, { _id: 1, name: 1 });
+
+    // Get branches that have not placed orders
+    const branchesWithoutOrders = allBranches.filter(
+      (branch) => !branchesWithOrders.has(branch._id.toString())
     );
 
-    // Total branches and departments
-    const totalBranches = await Branch.countDocuments();
-    const totalDepartments = await Department.countDocuments();
+    const branchesWithoutOrdersCount = branchesWithoutOrders.length;
 
-    // Calculate numbers
-    const branchesWithOrdersCount = branchesWithOrders.size;
-    const branchesWithoutOrdersCount = totalBranches - branchesWithOrdersCount;
-
-    const departmentsWithOrdersCount = departmentsWithOrders.size;
-    const departmentsWithoutOrdersCount = totalDepartments - departmentsWithOrdersCount;
+    // Total branches
+    const totalBranches = allBranches.length;
 
     res.status(200).send({
       branches: {
-        withOrders: branchesWithOrdersCount,
+        withOrders: branchesWithOrders.size,
         withoutOrders: branchesWithoutOrdersCount,
+        withoutOrderNames: branchesWithoutOrders.map((branch) => branch.name), // Add branch names
       },
       departments: {
-        withOrders: departmentsWithOrdersCount,
-        withoutOrders: departmentsWithoutOrdersCount,
+        // Existing departments summary logic
       },
     });
   } catch (error) {
@@ -490,6 +488,5 @@ router.get('/summary/:year/:month', async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;
