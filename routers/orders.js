@@ -138,8 +138,12 @@ router.put("/:id", async (req, res) => {
       status: req.body.status,
       otherProduct: req.body.otherProduct || '',
       user: req.body.user,
-      dateOrdered: req.body.dateOrdered,
     };
+
+    // Only update dateOrdered if it's provided in the request
+    if (req.body.dateOrdered) {
+      updateData.dateOrdered = new Date(req.body.dateOrdered);
+    }
 
     // Only set these fields if they are provided
     if (orderItemsIds.length > 0) updateData.orderItems = orderItemsIds;
