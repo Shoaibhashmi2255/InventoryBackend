@@ -395,21 +395,28 @@ router.delete('/:orderId/items/:itemId', async (req, res) => {
   const { orderId, itemId } = req.params;
 
   try {
-    // Find the order and verify that the item belongs to it
     const order = await Order.findById(orderId);
+    console.log('🔍 orderId:', orderId);
+
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
+order.orderItems.forEach((id) => {
+  console.log('🔍 Comparing:', id.toString(), '===', itemId, '=>', id.toString() === itemId);
+});
 
-    if (!order.orderItems.includes(itemId)) {
+    // 🔍 Convert both ObjectId and string before comparing
+    if (!order.orderItems.some(id => id.toString() === itemId)) {
       return res.status(400).json({ success: false, message: 'Item does not belong to this order' });
     }
+console.log('🔍 itemId:', itemId);
+console.log('🧾 Order Items:', order.orderItems.map(id => id.toString()));
 
-    // Remove the item from the order
+    // Remove item from order
     order.orderItems = order.orderItems.filter(id => id.toString() !== itemId);
     await order.save();
 
-    // Delete the order item from the database
+    // Delete item itself
     await OrderItem.findByIdAndDelete(itemId);
 
     return res.status(200).json({ success: true, message: 'Order item deleted successfully' });
@@ -418,6 +425,7 @@ router.delete('/:orderId/items/:itemId', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Error deleting order item', error });
   }
 });
+
 
 
 
